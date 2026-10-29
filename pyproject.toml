@@ -1,0 +1,10 @@
+[project]
+name = "qaoa-maxcut-study"
+version = "0.1.0"
+description = "QAOA for MaxCut on small 3-regular graphs: exact simulation against classical baselines"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy", "networkx", "pandas", "matplotlib", "qiskit"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
