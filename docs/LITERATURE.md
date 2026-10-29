@@ -14,7 +14,7 @@ find a paper is weak evidence that none exists. Claims are graded by how they we
 | Zou, Treinish, Hartman, Ivrii, Lishman. *LightSABRE.* [arXiv:2409.08368](https://arxiv.org/abs/2409.08368) (2024) | Faster SABRE in Qiskit 1.2.0, 18.9% fewer SWAPs on average than the original SABRE | Qiskit's default router is already heavily optimised |
 | Pati, Simmhan. *Per-Phase Fidelity Attribution for Quantum Compilers using HBR Decomposition.* [arXiv:2605.07876](https://arxiv.org/abs/2605.07876) (2026) | Attributes fidelity loss to decomposition, basis translation and routing across Qiskit, PennyLane and TKET; real IBM Fez runs included | Compile-stage attribution. A search snippet said it also sweeps 25 transpiler seeds, but the abstract does not mention seeds: read the paper before citing that |
 | Qiskit docs, [SabreLayout](https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.transpiler.passes.SabreLayout) | `layout_trials` runs seeded trials and keeps the one with the fewest swaps; when `SabreLayout` is called directly the default trial count is the local CPU count | Selection is by swap count, not by fidelity |
-| Qiskit 2.3.0 source, `preset_passmanagers/builtin_plugins.py` (read locally) | The preset pass managers fix the trial count (5 at optimisation levels 0-1, 20 at levels 2-3) unless `QISKIT_SABRE_ALL_THREADS` is set | Each "seed" result in the PhD Paper 3 is the best of 5 internal trials at level 0; the paper should say so, with the Qiskit version used |
+| Qiskit 2.3.0 source, `preset_passmanagers/builtin_plugins.py` (read locally) | The preset pass managers fix the trial count (5 at optimisation levels 0-1, 20 at levels 2-3) unless `QISKIT_SABRE_ALL_THREADS` is set | Each seeded transpilation at level 0 returns the best of 5 internal trials, so studies of seed variance should state the Qiskit version and the trial counts |
 
 ## Confirmed by several search results only (not opened in full)
 
@@ -31,6 +31,16 @@ I-QMapper (arXiv 2606.27508); a Quality Indicator Circuits layout method claimin
 "From Circuits to Hardware" (arXiv 2607.11637); BAHAMAS control plane (arXiv 2608.28811), reportedly showing drift in the ranking of
 QAOA parameter settings on IBM Fez and Torino; a depth-independent linear-chain ansatz run on ibm_kingston (arXiv 2509.17296);
 and an unsourced preprint claim that p = 1 QAOA loses to a greedy heuristic on all instances.
+
+## Benchmark datasets (searched 2026-10-29)
+
+| Source | Checked | Note |
+|---|---|---|
+| QOBLIB, [arXiv:2504.03832](https://arxiv.org/abs/2504.03832): 27 authors including Woerner, Egger and Zoufal; ten problem classes; repository at git.zib.de | abstract page and IBM's blog read | The pages did not name the classes or mention MaxCut. One secondary summary named Market Split and LABS, unconfirmed. The group's own benchmark; using it would mean a new problem class and a download |
+| Biq Mac library ([biqmac.aau.at](https://biqmac.aau.at/biqmaclib.html)) | page read | Smallest Max-Cut instance has 60 vertices (too big for exact simulation); no licence stated; quadratic 0-1 sets from n = 20 |
+| HamLib, [arXiv:2306.13126](https://arxiv.org/abs/2306.13126) (Quantum 8, 1559 (2024)) | abstract read | Includes MaxCut; sizes 2 to 1000 qubits overall; the page gave no MaxCut sizes or hosting URL (the dataset is described as freely available) |
+| Bucher et al., [arXiv:2405.07624](https://arxiv.org/abs/2405.07624) | abstract read | Benchmarking guidelines, including data selection with "hard instances and real-world samples". A search snippet claimed real instances are scarce at 10-20 nodes; the abstract does not say that, so it is unconfirmed |
+| Herrman et al., "Impact of graph structures for QAOA on MaxCut", [arXiv:2102.05997](https://arxiv.org/abs/2102.05997) | search snippet only | Reportedly all connected graphs up to 8 vertices at p <= 3; odd cycles and symmetry as predictors. Read before citing |
 
 ## What this means for the research question
 

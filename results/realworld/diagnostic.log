@@ -1,0 +1,23 @@
+# Warm-start diagnostic (post hoc, not pre-registered)
+
+Warm start = best depth-p parameters plus an identity layer, then COBYLA with the same budget.
+
+| graph | step | r_best(p), random start | warm start value (must equal it) | after optimising | r_best(p+1), random start | optimiser missed by |
+|---|---|---|---|---|---|---|
+| florentine_families (whole network, largest component) | p=1->2 | 0.6572 | 0.6572 | 0.6572 | 0.8584 | -0.2012 |
+| florentine_families (whole network, largest component) | p=2->3 | 0.8584 | 0.8584 | 0.9001 | 0.9001 | -0.0000 |
+| karate_club core-16 | p=1->2 | 0.8303 | 0.8303 | 0.8303 | 0.8303 | -0.0000 |
+| karate_club core-16 | p=2->3 | 0.8303 | 0.8303 | 0.8304 | 0.9122 | -0.0817 |
+| karate_club ball-16 | p=1->2 | 0.7471 | 0.7471 | 0.7471 | 0.8213 | -0.0742 |
+| karate_club ball-16 | p=2->3 | 0.8213 | 0.8213 | 0.8629 | 0.8003 | +0.0626 |
+| les_miserables core-16 | p=1->2 | 0.8176 | 0.8176 | 0.8176 | 0.9039 | -0.0862 |
+| les_miserables core-16 | p=2->3 | 0.9039 | 0.9039 | 0.9209 | 0.8814 | +0.0395 |
+| les_miserables ball-16 | p=1->2 | 0.8479 | 0.8479 | 0.8479 | 0.8913 | -0.0434 |
+| les_miserables ball-16 | p=2->3 | 0.8913 | 0.8913 | 0.8913 | 0.8900 | +0.0014 |
+| davis_southern_women core-16 | p=1->2 | 0.5076 | 0.5076 | 0.5107 | 0.6435 | -0.1328 |
+| davis_southern_women core-16 | p=2->3 | 0.6435 | 0.6435 | 0.6435 | 0.7707 | -0.1272 |
+| davis_southern_women ball-16 | p=1->2 | 0.6880 | 0.6880 | 0.7917 | 0.7917 | -0.0000 |
+| davis_southern_women ball-16 | p=2->3 | 0.7917 | 0.7917 | 0.8452 | 0.8478 | -0.0026 |
+
+Identity-layer check (warm start value equals r_best(p)): PASS.
+Steps where the random-start optimiser missed a higher value by more than 0.002: 2 of 14.

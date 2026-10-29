@@ -28,6 +28,7 @@ class Config:
     maxiter: int = 300
     baseline_samples: int = 1024    # GW roundings / random cuts per instance
     local_search_runs: int = 200
+    modes: tuple = ("ideal", "shots")
 
 
 MODES = {"ideal": 0, "shots": 1}
@@ -88,6 +89,8 @@ def run_instance(task: tuple) -> dict:
     for p in cfg.depths:
         for restart in range(cfg.restarts):
             for mode, code in MODES.items():
+                if mode not in cfg.modes:
+                    continue
                 init_rng = _rng(n, idx, p, restart, code, 1)
                 shot_rng = _rng(n, idx, p, restart, code, 2)
                 x, nfev = optimise(model, p, init_rng, shot_rng, cfg.shots_per_eval if mode == "shots" else None, cfg.maxiter)

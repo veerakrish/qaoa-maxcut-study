@@ -5,7 +5,8 @@ with 8 to 14 vertices. It is a methods exercise: formulate, implement, validate 
 algorithm, with the success criteria fixed before the run ([docs/PREREGISTRATION.md](docs/PREREGISTRATION.md)).
 It does not test quantum advantage, and the behaviour it reports is already known in the QAOA literature.
 
-**Status: simulation phase only.** No hardware or noisy-simulation results exist yet.
+**Status:** the simulation phase is complete, and one pre-registered hardware batch has been run (110 circuits on `ibm_marrakesh`,
+2026-10-29). No noisy-simulation results exist.
 
 ## Results
 
@@ -40,9 +41,60 @@ Things worth knowing before reading these numbers:
   (1.000) and local search (0.999 to 1.000 with 10 restarts). Uniform random sampling already reaches 0.995 at n = 10 and 0.949 at n = 14.
 - **Small, single-family study.** Exact simulation, n <= 14, unweighted cubic graphs, no hardware noise, one optimiser.
 
+## Hardware results (one batch, one device, one day)
+
+Design, decision rules and cost cap: [docs/PREREGISTRATION_HARDWARE.md](docs/PREREGISTRATION_HARDWARE.md), committed before the
+job was submitted. 10 graphs (n = 8 and 10), p = 1 and 2, 5 transpiler seeds each (optimisation level 3), plus 10 repeats of one
+reference circuit to measure drift: 110 circuits at 4096 shots in a single job on `ibm_marrakesh` (job `dbhhjscdgr2s73ctigs0`,
+126 s of QPU time, calibration unchanged during the batch). Full output: [results/hardware/summary.md](results/hardware/summary.md).
+
+| Pre-registered question | Outcome |
+|---|---|
+| HW1: seed-level spread beyond shot noise and drift? | **Detected.** Seed variance is 11x the shot-noise-plus-drift level (95% CI 4.6 to 20); excess seed s.d. about 0.008 in a ratio near 0.77. The device was stable (reference-circuit s.d. 0.0025, close to the shot-noise 0.0023) |
+| HW2: comparable to the gain from one more layer? | **No.** p = 2 beat p = 1 by +0.034 (95% CI 0.026 to 0.041), about four times the seed s.d., although noise removes more than half of the ideal gain |
+| HW3: does the calibration-based cost score rank seeds? | **Not shown.** Mean within-graph Spearman correlation -0.13 (95% CI -0.41 to 0.15) |
+| HW4: does choosing by that score beat a random seed? | **No** (difference -0.0008, 95% CI -0.0032 to 0.0017). Choosing the seed with the fewest two-qubit gates did slightly better than random (+0.0030, CI 0.0001 to 0.0067, uncorrected for three comparisons) |
+| HW5: hardware against ideal | Measured / ideal ratio 0.96 at p = 1 and 0.90 at p = 2 |
+
+Post-hoc checks ([results/hardware/exploratory.md](results/hardware/exploratory.md), **not pre-registered**): across all circuits the score is
+well calibrated as a predictor of the drop from the ideal ratio (slope 0.99, R^2 0.71) but explains nothing within a graph (slope 0.09, R^2 0.00);
+two-qubit gate count ranks seeds better (Spearman -0.31, CI -0.48 to -0.13); 42% of the seed variance sits in one cell (n = 8, graph 4, p = 2)
+and 65% in three, yet dropping any single cell leaves the effect (R 8 to 14) and 17 of 20 cells exceed twice their shot-noise variance.
+
+Caveats: one device and one day; 20 cells of 5 seeds, so the rank-correlation interval is wide (the score may carry a signal this design could not resolve);
+the "seed" effect is any difference between compiled circuits (different physical qubits and gate counts), not randomness as such;
+parameters were fixed from the noiseless optimum, not tuned on hardware; the analysis code was committed after submission but before any result existed.
+
+## Real-world networks (simulation)
+
+Seven small instances from real networks that ship inside networkx (Zachary's karate club, Padgett's Florentine families, Knuth's Les Miserables,
+the Southern women network), cut to 15 or 16 nodes by two rules fixed in advance: [docs/PREREGISTRATION_REALWORLD.md](docs/PREREGISTRATION_REALWORLD.md).
+Same protocol as above, exact simulation. Per-graph output: [results/realworld/summary.md](results/realworld/summary.md).
+
+| Graph | n | edges | QAOA p=1 | p=2 | p=3 | Goemans-Williamson (single) | local search (single) |
+|---|---|---|---|---|---|---|---|
+| Florentine families | 15 | 20 | 0.657 | 0.858 | 0.900 | 0.965 | 0.945 |
+| karate club, core-16 | 16 | 39 | 0.830 | 0.830 | 0.912 | 0.968 | 0.950 |
+| karate club, ball-16 | 16 | 28 | 0.747 | 0.821 | 0.800 * | 0.982 | 0.906 |
+| Les Miserables, core-16 | 16 | 67 | 0.818 | 0.904 | 0.881 * | 0.951 | 0.942 |
+| Les Miserables, ball-16 | 16 | 33 | 0.848 | 0.891 | 0.890 | 0.972 | 0.963 |
+| Southern women, core-16 (bipartite) | 16 | 39 | 0.508 | 0.644 | 0.771 | 1.000 | 0.944 |
+| Southern women, ball-16 (bipartite) | 16 | 17 | 0.688 | 0.792 | 0.848 | 1.000 | 0.944 |
+
+`*` marks a fall with depth that no true optimum can show (see below).
+
+- **RW1, depth helps:** holds on 5 of 7 graphs as pre-registered. The two exceptions are optimiser misses, not physics: a depth-3 circuit contains the depth-2
+  circuit, so its optimum cannot be lower. A post-hoc warm-start check ([results/realworld/diagnostic.md](results/realworld/diagnostic.md), not pre-registered)
+  reaches 0.863 on karate ball-16 and 0.921 on Les Miserables core-16, above both the random-start values and the depth-2 values. The 64-graph cubic study shows no such fall (0 of 128 steps).
+- **RW2, classical baselines:** QAOA at p = 3 is below both single-run baselines on all 7 graphs. No advantage.
+- **RW3/RW4, structure matters:** the dense Les Miserables core leaves little headroom (a random cut already reaches 0.80; QAOA at p = 1 adds only +0.020). The bipartite
+  Southern-women graphs sit below the cubic-graph range at every depth although classical methods are exact there (p = 1 is only +0.008 over random on the core graph).
+  Four of seven graphs are inside the cubic-graph range at p = 3; karate ball-16 (an optimiser miss) and the two bipartite graphs are below it.
+- **Caveats:** seven graphs of at most 16 vertices, two arbitrary selection rules, unweighted, ideal simulation, one optimiser. Nothing generalises beyond these instances.
+
 ## Validation
 
-`python -m pytest` runs 26 tests. The ones that matter most:
+`python -m pytest` runs 28 tests (26 for the simulator and baselines, 2 for the hardware analysis on synthetic data). The ones that matter most:
 
 - the numpy simulator agrees with an independent Qiskit statevector to 1e-10 (p = 1, 2, 3, several graphs);
 - the single-edge closed form, and the ring-graph p = 1 value of 3/4;
@@ -59,6 +111,7 @@ pip install -r requirements.txt
 python -m pytest                       # about 20 s
 python -m qaoa_study.experiment        # about 8 min on 7 workers; resumable, one JSON per graph in results/raw
 python -m qaoa_study.analysis          # writes results/summary.md, results/summary.csv and figures/
+python -m qaoa_study.realworld_run     # real-world networks, about 10 min; results/realworld/
 ```
 
 Everything is seeded; the configuration used is in `results/config.json`.
@@ -90,7 +143,7 @@ before publishing, and which parts you can explain in detail.]
 
 ## Next steps (not done)
 
-1. Noisy simulation with a device noise model.
-2. If a hardware phase follows, give it its own pre-registration. A natural question connects to the transpiler-seed variance
-   found in the PhD work: does seed-to-seed variation in routed depth appear as variation in the measured approximation ratio?
-   That is a hypothesis to test, not a finding.
+1. Replicate on a second device and day with more seeds per graph, which is the main limit of the batch above.
+2. Ask why gate count ranks seeds while the calibration-based score does not (representativeness of reported error rates, crosstalk, or low power);
+   any follow-up gets its own pre-registration.
+3. Compare against mapomatic itself, and test larger instances.
